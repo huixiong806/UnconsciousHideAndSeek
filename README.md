@@ -52,7 +52,7 @@ n*m的方格地图上有一些障碍物。初始是第0个时刻，小五和恋�
 ## 项目会不会弃坑？
 有可能...
 
-##使用的库
+## 使用的库
 Console-Graphic-Engine https://github.com/harrynull/Console-Graphic-Engine
 Corecat https://github.com/SuperSodaSea/Corecat
 json https://github.com/nlohmann/json
