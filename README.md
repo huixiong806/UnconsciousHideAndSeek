@@ -37,7 +37,7 @@ n*m的方格地图上有一些障碍物。初始是第0个时刻，小五和恋�
 阿燐想要知道的是，在双方都最优决策的情况下，游戏进行时间的期望值是多少。但这个问题对猫脑袋来说过于复杂了，你能帮她解决吗？
 
 ## 计划做几个游戏呢？
-知らない。(不知道)
+知らない.(不知道)
 
 ## 这代码好乱啊，作者水平不行吧
 作者目前是个高中生，这个项目有练习编程的性质，不是很正式的那种，请谅解。
@@ -51,3 +51,8 @@ n*m的方格地图上有一些障碍物。初始是第0个时刻，小五和恋�
 
 ## 项目会不会弃坑？
 有可能...
+
+##使用的库
+Console-Graphic-Engine https://github.com/harrynull/Console-Graphic-Engine
+Corecat https://github.com/SuperSodaSea/Corecat
+json https://github.com/nlohmann/json
