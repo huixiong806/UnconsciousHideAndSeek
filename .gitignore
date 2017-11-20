@@ -1,0 +1,11 @@
+Debug/
+Release/
+UnconsciousHideAndSeek/Debug/
+UnconsciousHideAndSeek/Release/
+GameLoader/Debug/
+GameLoader/Release/
+dependencies/
+.vs/
+*.db
+*.filters
+*.user
