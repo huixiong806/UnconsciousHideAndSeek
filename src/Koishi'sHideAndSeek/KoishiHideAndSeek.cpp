@@ -12,51 +12,49 @@ using namespace std;
 string curPath;
 bool Game::timeUp()
 {
-	return (round >= timeLimit&&timeLimit >= 0);
+	return (round >= roundLimit && roundLimit >= 0);
 }
-std::pair<int32_t, bool> Game::getMovementForSatori()
+GetMovementResult Game::getMovementForSatori()
 {
 	ofstream output("satori.in");
-	output << map.size().x << " " << map.size().y<<" "<<startPositionSatori.x<<" "<< startPositionSatori.y<<" "<<startPositionKoishi.x<<" "<< startPositionKoishi.y<<" "<<timeLimit<< endl;
+	output << map.size().x << " " << map.size().y << " " << startPositionSatori.x << " " << startPositionSatori.y << " " << startPositionKoishi.x << " " << startPositionKoishi.y << " " << roundLimit << endl;
 	for (int32_t i = 0; i < map.size().x; ++i)
 	{
 		for (int32_t j = 0; j < map.size().y; ++j)
-			output << (int)map.getGird(i, j)<<" ";
+			output << (int)map.getGird(i, j) << " ";
 		output << endl;
 	}
-	output << round+1 << endl;
+	output << round + 1 << endl;
 	for (int32_t i = 0; i < round; ++i)
 		output << movementSetSatori[i] << endl;
-	bool timeLimitExceeded=FileManager::openEXE(curPath + "\\AI\\satori.exe",1500);
-	if (timeLimitExceeded)return make_pair(-1, false);
+	bool timeLimitExceeded = FileManager::openEXE(curPath + "\\AI\\satori.exe", 1500);
+	if (timeLimitExceeded)return { -1,1,0,0 };
 	ifstream input("satori.out");
-	int32_t newMovement=5;
+	int32_t newMovement = 5;
 	input >> newMovement;
 	movementSetSatori.push_back(newMovement);
-	//cout << "satori's movement:" << newMovement << endl;
-	return make_pair(newMovement, movementIsLegal(satori, newMovement));
+	return { newMovement,0,0,!movementIsLegal(satori, newMovement) };
 }
-std::pair<int32_t, bool> Game::getMovementForKoishi()
+GetMovementResult Game::getMovementForKoishi()
 {
 	ofstream output("koishi.in");
-	output << map.size().x << " " << map.size().y << " " << startPositionSatori.x << " " << startPositionSatori.y << " " << startPositionKoishi.x << " " << startPositionKoishi.y << " " << timeLimit << endl;
+	output << map.size().x << " " << map.size().y << " " << startPositionSatori.x << " " << startPositionSatori.y << " " << startPositionKoishi.x << " " << startPositionKoishi.y << " " << roundLimit << endl;
 	for (int32_t i = 0; i < map.size().x; ++i)
 	{
 		for (int32_t j = 0; j < map.size().y; ++j)
-			output << (int)map.getGird(i, j)<<" ";
+			output << (int)map.getGird(i, j) << " ";
 		output << endl;
 	}
-	output << round+1 << endl;
+	output << round + 1 << endl;
 	for (int32_t i = 0; i < round; ++i)
-		output << movementSetSatori[i] << " "<< movementSetKoishi[i]<<endl;
+		output << movementSetSatori[i] << " " << movementSetKoishi[i] << endl;
 	bool timeLimitExceeded = FileManager::openEXE(curPath + "\\AI\\koishi.exe", 1500);
-	if(timeLimitExceeded)return make_pair(-1, false);
+	if (timeLimitExceeded)return { -1,1,0,0 };
 	ifstream input("koishi.out");
-	int32_t newMovement=5;
+	int32_t newMovement = 5;
 	input >> newMovement;
 	movementSetKoishi.push_back(newMovement);
-	//cout<<"koishi's movement:" << newMovement << endl;
-	return make_pair(newMovement, movementIsLegal(koishi, newMovement));
+	return { newMovement,0,0,!movementIsLegal(koishi, newMovement) };
 }
 bool Game::catchUp(int32_t movementSatori, int32_t movementKoishi)
 {
@@ -110,37 +108,47 @@ void Game::runGame()
 {
 	bool satoribadmoveflag = false;
 	bool koishibadmoveflag = false;
-	cout << "game start" << endl;
-	if (!(timeLimit == 0 || startPositionSatori == startPositionKoishi))
+	bool satoriTLEflag = false;
+	bool koishiTLEflag = false;
+	cout << "Game Start" << endl;
+	GetMovementResult movementSatori, movementKoishi;
+	if (!(roundLimit == 0 || startPositionSatori == startPositionKoishi))
 	{
-		std::pair<int32_t, bool> movementSatori,movementKoishi;
 		do
 		{
 			printMap();
 			cout << endl << "round " << round + 1 << ":" << endl;
 			movementSatori = getMovementForSatori();
-			if(!movementSatori.second)satoribadmoveflag = true;
+			if (movementSatori.badMove)satoribadmoveflag = true;
+			if (movementSatori.timeLimitExceeded)satoriTLEflag = true;
 			movementKoishi = getMovementForKoishi();
-			if (!movementKoishi.second)satoribadmoveflag = true;
-			if (satoribadmoveflag || koishibadmoveflag)break;
-		} while (!roundFinish(movementSatori.first, movementKoishi.first));
+			if (movementKoishi.badMove)koishibadmoveflag = true;
+			if (movementKoishi.timeLimitExceeded)koishiTLEflag = true;
+			if (satoribadmoveflag || koishibadmoveflag || satoriTLEflag || koishiTLEflag)break;
+		} while (!roundFinish(movementSatori.movement, movementKoishi.movement));
+		printMap();
 	}
-	cout << "game over" << endl;
-	if (satoribadmoveflag&&koishibadmoveflag)cout << "Both Bad move!" << endl;
-	else if (satoribadmoveflag)cout << "Satori Bad move!" << endl;
-	else if (koishibadmoveflag)cout << "Koishi Bad move!" << endl;
-	else cout << "result:koishi lived " << round << " seconds." << endl;
+	cout << "Game Over" << endl;
+	if (satoriTLEflag&&koishiTLEflag)cout << "Both TLE." << endl;
+	else if (satoriTLEflag)cout << "Satori TLE." << endl;
+	else if (koishiTLEflag)cout << "Koishi TLE." << endl;
+	else if (satoribadmoveflag&&koishibadmoveflag)cout << "Both bad move." << endl;
+	else if (satoribadmoveflag)cout << "Satori bad move,movement:" << movementSatori.movement << endl;
+	else if (koishibadmoveflag)cout << "Koishi bad move,movement:" << movementKoishi.movement << endl;
+	else cout << "Koishi lived " << round << " rounds." << endl;
 	FileManager::deleteFile("satori.in");
 	FileManager::deleteFile("satori.out");
 	FileManager::deleteFile("koishi.in");
 	FileManager::deleteFile("koishi.out");
+	FileManager::deleteFile("koishi.tmp");
+	FileManager::deleteFile("satori.tmp");
 }
 void Game::initGame(json parameter)
 {
 	ifstream input(curPath + "/map/map1.txt");
 	Vec2u mapSize;
-	input >> mapSize.x >> mapSize.y >> startPositionSatori.x >> startPositionSatori.y >> startPositionKoishi.x >> startPositionKoishi.y >> timeLimit;
-	cout << "time limit:" << timeLimit << endl;
+	input >> mapSize.x >> mapSize.y >> startPositionSatori.x >> startPositionSatori.y >> startPositionKoishi.x >> startPositionKoishi.y >> roundLimit;
+	cout << "time limit:" << roundLimit << endl;
 	map.resize(mapSize);
 	round = 0;
 	satori = make_shared<Player>();
@@ -174,5 +182,6 @@ extern "C"
 	{
 		game->runGame();
 		while (getchar() != 'q');
+		Console::clear();
 	}
 }

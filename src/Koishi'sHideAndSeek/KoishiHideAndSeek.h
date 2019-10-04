@@ -4,6 +4,13 @@
 #include <GirdMap.hpp>
 #include <Json.hpp>
 #include <Api.h>
+struct GetMovementResult
+{
+	int32_t movement;
+	bool timeLimitExceeded;
+	bool memoryLimitExceeded;
+	bool badMove;
+};
 class Game
 {
 private:
@@ -12,13 +19,13 @@ private:
 	std::shared_ptr<Player> satori;
 	std::shared_ptr<Player> koishi;
 	GridMap<Gird01> map;
-	int32_t round, timeLimit;
+	int32_t round, roundLimit;
 	Vec2i startPositionSatori, startPositionKoishi;
 	void printMap();
 	bool timeUp();
 	bool catchUp(int32_t movementSatori,int32_t movementKoishi);
-	std::pair<int32_t,bool> getMovementForSatori();
-	std::pair<int32_t, bool> getMovementForKoishi();
+	GetMovementResult getMovementForSatori();
+	GetMovementResult getMovementForKoishi();
 	bool roundFinish(int32_t movementSatori, int32_t movementKoishi);
 	bool movementIsLegal(std::shared_ptr<Player> player, int32_t movement);
 public:
